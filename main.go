@@ -73,7 +73,8 @@ func index(w http.ResponseWriter, r *http.Request) {
 	msgErr := db.QueryRow("SELECT header, body, img FROM messages WHERE active = 1").Scan(&header, &body, &img)
 	if msgErr != nil {
 		// now we can setup a birthday message, if one exists
-		bdErr := db.QueryRow("SELECT fname FROM birthdays WHERE birthday = ?", time.Now().Format("01-02")).Scan(&bdName)
+		newyork, _ := time.LoadLocation("America/New_York")
+		bdErr := db.QueryRow("SELECT fname FROM birthdays WHERE birthday = ?", time.Now().In(newyork).Format("01-02")).Scan(&bdName)
 		if bdErr == nil {
 			header = "Happy birthday " + bdName + "!"
 			showMessage = true
