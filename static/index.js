@@ -11,7 +11,22 @@ const countdownDesc = document.querySelector(".countdown .desc")
 
 const destTime = convertFromGoDate(countdownData.countdownTo)
 
-const weatherLoc = "https://api.weather.gov/gridpoints/BGM/44,69/forecast"
+const observationUrl = "https://api.weather.gov/stations/KITH/observations/latest"
+
+const getTemp = data => {
+	const value = data.properties.temperature.value
+	const unit = data.properties.temperature.unitCode
+
+	console.log(value)
+	console.log(unit)
+
+	if (unit == "wmoUnit:degC" || unit == "wmoUnit:Cel") {
+		// the wmo has two units that represent Celsius, "degree Celsius" and "degrees Celsius." I don't know what the difference is
+		return { temp: Math.round(value * (9 / 5) + 32), unit: "F" }
+	}
+
+	return { temp: Math.round(value), unit: "F" }
+}
 
 const calculateTimeUntil = (from, to) => {
 	const distance = to.getTime() - (from.getTime());
@@ -70,7 +85,8 @@ if (countdownData.showMessage) {
 setInterval(tick, 500)
 setTimeout(window.location.reload, countdownData.refreshFreq)
 
-fetch(weatherLoc).then(resp => resp.json()).then(data => {
-	temp.textContent = data.properties.periods[0].temperature
-	unit.textContent = data.properties.periods[0].temperatureUnit
+fetch(observationUrl).then(resp => resp.json()).then(data => {
+	const tempData = getTemp(data)
+	temp.textContent = tempData.temp
+	unit.textContent = tempData.unit
 }).catch(error => console.error("error fetching weather", error))
