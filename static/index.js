@@ -83,7 +83,7 @@ if (countdownData.showMessage) {
 }
 
 setInterval(tick, 500)
-setTimeout(window.location.reload, countdownData.refreshFreq)
+setTimeout(() => window.location.reload(), countdownData.refreshFreq)
 
 fetch(observationUrl).then(resp => resp.json()).then(data => {
 	const tempData = getTemp(data)
