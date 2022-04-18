@@ -2,6 +2,11 @@ const convertFromGoDuration = d => d / 1000000;
 const convertFromGoDate = d => new Date(d);
 const countdownData = window.countdownInfo;
 
+const countdownContainer = document.querySelector(".countdown-container")
+const infoContainer = document.querySelector(".info-container")
+const infoTitle = document.querySelector(".info-title")
+const infoSubtitle = document.querySelector(".info-subtitle")
+
 const time = document.querySelector(".clock .time-container .time")
 const temp = document.querySelector(".clock .time-container .weather")
 const unit = document.querySelector(".clock .time-container .weather-unit")
@@ -56,17 +61,18 @@ const tick = () => {
 		countdown.textContent = `T-${distance.days}d ${distance.hours}h ${distance.minutes}m ${distance.seconds}s`
 		countdownDesc.textContent = countdownData.event
 	} else {
-		countdown.textContent = "Cornell Rocketry Team"
-		countdownDesc.textContent = ""
+		countdownContainer.classList.add("hidden")
+		infoContainer.classList.remove("hidden")
+		infoContainer.classList.add("double")
+		if (!countdownData.showMessage) {
+			infoContainer.style.backgroundImage = "url(/static/allteam.jpg)"
+			infoSubtitle.classList.add("hidden")
+			infoTitle.classList.add("hidden")
+		}
 	}
 }
 
 if (countdownData.showMessage) {
-	const countdownContainer = document.querySelector(".countdown-container")
-	const infoContainer = document.querySelector(".info-container")
-	const infoTitle = document.querySelector(".info-title")
-	const infoSubtitle = document.querySelector(".info-subtitle")
-
 	infoTitle.textContent = countdownData.message.header
 	if (countdownData.message.body) {
 		infoSubtitle.textContent = countdownData.message.body

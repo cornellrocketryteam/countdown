@@ -52,7 +52,10 @@ func index(w http.ResponseWriter, r *http.Request) {
 	var countdownTo, event, bdName string
 	var refreshFreq int
 	err := db.QueryRow("SELECT countdownTo, refreshFreq, event FROM events WHERE active = 1").Scan(&countdownTo, &refreshFreq, &event)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		countdownTo = "2000-01-01T00:00:00.000Z"
+		refreshFreq = 300000
+	} else if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
