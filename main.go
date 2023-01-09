@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"log"
@@ -12,6 +13,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/skip2/go-qrcode"
 )
 
 var home = template.Must(template.ParseFiles("index.html"))
@@ -20,6 +22,8 @@ type message struct {
 	Header          string `json:"header"`
 	Body            string `json:"body"`
 	BackgroundImage string `json:"backgroundImage"`
+	ShowQrCode      bool   `json:"showQrCode"`
+	QrCodeImage     string `json:"qrCodeImage"`
 }
 
 type countdownInfo struct {
@@ -72,8 +76,11 @@ func index(w http.ResponseWriter, r *http.Request) {
 	header := ""
 	body := ""
 	img := ""
+	qrCodeData := "https://cornellrocketryteam.com"
+	showQrCode := false
+	qrCodeImage := ""
 
-	msgErr := db.QueryRow("SELECT header, body, img FROM messages WHERE active = 1").Scan(&header, &body, &img)
+	msgErr := db.QueryRow("SELECT header, body, img, qrCode FROM messages WHERE active = 1").Scan(&header, &body, &img, &qrCodeData)
 	if msgErr != nil {
 		// now we can setup a birthday message, if one exists
 		newyork, _ := time.LoadLocation("America/New_York")
@@ -85,6 +92,12 @@ func index(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		showMessage = true
+		if qrCodeData != "" {
+			showQrCode = true
+			png, _ := qrcode.Encode(qrCodeData, qrcode.Medium, 512)
+			qrCodeImage = "data:image/png;base64," + base64.StdEncoding.EncodeToString(png)
+		}
+
 	}
 
 	home.Execute(w,
@@ -98,6 +111,8 @@ func index(w http.ResponseWriter, r *http.Request) {
 				Header:          header,
 				Body:            body,
 				BackgroundImage: img,
+				ShowQrCode:      showQrCode,
+				QrCodeImage:     qrCodeImage,
 			},
 		},
 	)

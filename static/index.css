@@ -86,11 +86,32 @@ body {
 
 .info-container {
 	display: flex;
-	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	flex-direction: row;
 	background-position: center;
 	background-size: cover;
+	min-height: 100%;
+}
+
+.info-container .info-text,
+.info-container .info-qr {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	padding-left: 10px;
+	padding-right: 10px;
+	flex-grow: 1;
+}
+
+.info-container .info-qr {
+	height: 100%;
+}
+
+.info-container .info-qr .qr-code {
+	height: 100%;
+	padding: 20px;
 }
 
 .info-container h1,

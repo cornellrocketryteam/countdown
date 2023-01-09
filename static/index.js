@@ -4,8 +4,11 @@ const countdownData = window.countdownInfo;
 
 const countdownContainer = document.querySelector(".countdown-container")
 const infoContainer = document.querySelector(".info-container")
+const infoTextContainer = document.querySelector(".info-container .info-text")
+const infoQrContainer = document.querySelector(".info-container .info-qr")
 const infoTitle = document.querySelector(".info-title")
 const infoSubtitle = document.querySelector(".info-subtitle")
+const infoQrCode = document.querySelector(".qr-code")
 
 const time = document.querySelector(".clock .time-container .time")
 const temp = document.querySelector(".clock .time-container .weather")
@@ -80,12 +83,17 @@ if (countdownData.showMessage) {
 		infoSubtitle.classList.add("hidden")
 	}
 
-	countdownContainer.classList.remove("double")
-	infoContainer.classList.remove("hidden")
-
 	if (countdownData.message.backgroundImage) {
 		infoContainer.style.backgroundImage = `url(${countdownData.message.backgroundImage})`
 	}
+
+	if (countdownData.message.showQrCode) {
+		infoQrCode.setAttribute("src", countdownData.message.qrCodeImage)
+		infoQrContainer.classList.remove("hidden")
+	}
+
+	countdownContainer.classList.remove("double")
+	infoContainer.classList.remove("hidden")
 }
 
 setInterval(tick, 500)
