@@ -14,8 +14,12 @@ const time = document.querySelector(".clock .time-container .time")
 const temp = document.querySelector(".clock .time-container .weather")
 const unit = document.querySelector(".clock .time-container .weather-unit")
 const date = document.querySelector(".clock .date")
-const countdown = document.querySelector(".countdown .timer")
+const countdown = document.querySelector(window.countdownInfo.message.header == "bracket" ? ".title-text" : ".countdown .timer")
 const countdownDesc = document.querySelector(".countdown .desc")
+
+const madnessContainer = document.querySelector(".madness-container")
+const madnessColumn1 = document.querySelector(".madness-column-1")
+const madnessColumn2 = document.querySelector(".madness-column-2")
 
 const destTime = convertFromGoDate(countdownData.countdownTo)
 
@@ -63,7 +67,7 @@ const tick = () => {
 	if (!distance.elapsed) {
 		countdown.textContent = `T-${distance.days}d ${distance.hours}h ${distance.minutes}m ${distance.seconds}s`
 		countdownDesc.textContent = countdownData.event
-	} else {
+	} else if (window.countdownInfo.message.header != "bracket") {
 		countdownContainer.classList.add("hidden")
 		infoContainer.classList.remove("hidden")
 		infoContainer.classList.add("double")
@@ -75,7 +79,7 @@ const tick = () => {
 	}
 }
 
-if (countdownData.showMessage) {
+if (countdownData.showMessage && window.countdownInfo.message.header != "bracket") {
 	infoTitle.textContent = countdownData.message.header
 	if (countdownData.message.body) {
 		infoSubtitle.textContent = countdownData.message.body
@@ -104,3 +108,38 @@ fetch(observationUrl).then(resp => resp.json()).then(data => {
 	temp.textContent = tempData.temp
 	unit.textContent = tempData.unit
 }).catch(error => console.error("error fetching weather", error))
+
+if (window.countdownInfo.message.header == "bracket") {
+	let getNumber = i => {
+		switch (i) {
+			case 0:
+				return "🥇"
+			case 1:
+				return "🥈"
+			case 2:
+				return "🥉"
+			default:
+				return i + 1;
+		}
+	}
+
+	countdownContainer.classList.add("hidden")
+	infoContainer.classList.add("hidden")
+
+	let bracketInfo = JSON.parse(countdownData.message.body);
+	let year = bracketInfo.year;
+	let groupId = bracketInfo.groupId;
+
+	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=14&periodPoints=false`).then(resp => resp.json()).then(data => {
+		let bracketData = data.g.e.map((val, i) => `${getNumber(i)}. ${val.n_d} (${val.p})`)
+		for (let i = 0; i < Math.min(8, bracketData.length); i++) {
+			madnessColumn1.innerHTML += bracketData[i] + "<br/>";
+		}
+
+		for (let i = 8; i < Math.min(16, bracketData.length); i++) {
+			madnessColumn2.innerHTML += bracketData[i] + "<br/>";
+		}
+	})
+
+	madnessContainer.classList.remove("hidden")
+}
