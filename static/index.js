@@ -1,3 +1,5 @@
+const MADNESS_COUNT = 16;
+
 const convertFromGoDuration = d => d / 1000000;
 const convertFromGoDate = d => new Date(d);
 const countdownData = window.countdownInfo;
@@ -117,12 +119,14 @@ if (window.countdownInfo.message.header == "bracket") {
 	let year = bracketInfo.year;
 	let groupId = bracketInfo.groupId;
 
+	madnessList2.setAttribute("start", MADNESS_COUNT / 2 + 1)
+
 	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=14&periodPoints=false`).then(resp => resp.json()).then(data => {
 		let bracketData = data.g.e.map((val, i) => `${val.n_d} (${val.p})`)
-		for (let i = 0; i < Math.min(14, bracketData.length); i++) {
+		for (let i = 0; i < Math.min(MADNESS_COUNT, bracketData.length); i++) {
 			bracketItem = document.createElement("li");
 			bracketItem.textContent = bracketData[i];
-			(i < 7 ? madnessList1 : madnessList2).appendChild(bracketItem)
+			(i < MADNESS_COUNT / 2 ? madnessList1 : madnessList2).appendChild(bracketItem)
 		}
 	})
 
