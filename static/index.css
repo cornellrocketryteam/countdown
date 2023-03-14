@@ -155,7 +155,8 @@ body {
 }
 
 .madness-container ol {
-	margin-top: 0.25em
+	margin-top: 0.25em;
+	margin-bottom: 0;
 }
 
 .madness-container .row .column {
