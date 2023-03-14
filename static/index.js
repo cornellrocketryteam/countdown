@@ -18,8 +18,8 @@ const countdown = document.querySelector(window.countdownInfo.message.header == 
 const countdownDesc = document.querySelector(".countdown .desc")
 
 const madnessContainer = document.querySelector(".madness-container")
-const madnessColumn1 = document.querySelector(".madness-column-1")
-const madnessColumn2 = document.querySelector(".madness-column-2")
+const madnessList1 = document.querySelector(".madness-list-1")
+const madnessList2 = document.querySelector(".madness-list-2")
 
 const destTime = convertFromGoDate(countdownData.countdownTo)
 
@@ -110,19 +110,6 @@ fetch(observationUrl).then(resp => resp.json()).then(data => {
 }).catch(error => console.error("error fetching weather", error))
 
 if (window.countdownInfo.message.header == "bracket") {
-	let getNumber = i => {
-		switch (i) {
-			case 0:
-				return "🥇"
-			case 1:
-				return "🥈"
-			case 2:
-				return "🥉"
-			default:
-				return i + 1;
-		}
-	}
-
 	countdownContainer.classList.add("hidden")
 	infoContainer.classList.add("hidden")
 
@@ -131,13 +118,11 @@ if (window.countdownInfo.message.header == "bracket") {
 	let groupId = bracketInfo.groupId;
 
 	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=14&periodPoints=false`).then(resp => resp.json()).then(data => {
-		let bracketData = data.g.e.map((val, i) => `${getNumber(i)}. ${val.n_d} (${val.p})`)
-		for (let i = 0; i < Math.min(7, bracketData.length); i++) {
-			madnessColumn1.innerHTML += bracketData[i] + "<br/>";
-		}
-
-		for (let i = 7; i < Math.min(14, bracketData.length); i++) {
-			madnessColumn2.innerHTML += bracketData[i] + "<br/>";
+		let bracketData = data.g.e.map((val, i) => `${val.n_d} (${val.p})`)
+		for (let i = 0; i < Math.min(14, bracketData.length); i++) {
+			bracketItem = document.createElement("li");
+			bracketItem.textContent = bracketData[i];
+			(i < 7 ? madnessList1 : madnessList2).appendChild(bracketItem)
 		}
 	})
 
