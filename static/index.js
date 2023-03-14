@@ -132,11 +132,11 @@ if (window.countdownInfo.message.header == "bracket") {
 
 	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=14&periodPoints=false`).then(resp => resp.json()).then(data => {
 		let bracketData = data.g.e.map((val, i) => `${getNumber(i)}. ${val.n_d} (${val.p})`)
-		for (let i = 0; i < Math.min(8, bracketData.length); i++) {
+		for (let i = 0; i < Math.min(7, bracketData.length); i++) {
 			madnessColumn1.innerHTML += bracketData[i] + "<br/>";
 		}
 
-		for (let i = 8; i < Math.min(16, bracketData.length); i++) {
+		for (let i = 7; i < Math.min(14, bracketData.length); i++) {
 			madnessColumn2.innerHTML += bracketData[i] + "<br/>";
 		}
 	})
