@@ -121,7 +121,7 @@ if (window.countdownInfo.message.header == "bracket") {
 
 	madnessList2.setAttribute("start", MADNESS_COUNT / 2 + 1)
 
-	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=14&periodPoints=false`).then(resp => resp.json()).then(data => {
+	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=${MADNESS_COUNT}&periodPoints=false`).then(resp => resp.json()).then(data => {
 		let bracketData = data.g.e.map((val, i) => `${val.n_d} (${val.p})`)
 		for (let i = 0; i < Math.min(MADNESS_COUNT, bracketData.length); i++) {
 			bracketItem = document.createElement("li");
