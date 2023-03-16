@@ -22,6 +22,7 @@ const countdownDesc = document.querySelector(".countdown .desc")
 const madnessContainer = document.querySelector(".madness-container")
 const madnessList1 = document.querySelector(".madness-list-1")
 const madnessList2 = document.querySelector(".madness-list-2")
+const waitingForResults = document.querySelector(".waiting-for-results")
 
 const destTime = convertFromGoDate(countdownData.countdownTo)
 
@@ -30,9 +31,6 @@ const observationUrl = "https://api.weather.gov/stations/KITH/observations/lates
 const getTemp = data => {
 	const value = data.properties.temperature.value
 	const unit = data.properties.temperature.unitCode
-
-	console.log(value)
-	console.log(unit)
 
 	if (unit == "wmoUnit:degC" || unit == "wmoUnit:Cel") {
 		// the wmo has two units that represent Celsius, "degree Celsius" and "degrees Celsius." I don't know what the difference is
@@ -122,6 +120,10 @@ if (window.countdownInfo.message.header == "bracket") {
 	madnessList2.setAttribute("start", MADNESS_COUNT / 2 + 1)
 
 	fetch(`https://fantasy.espncdn.com/tournament-challenge-bracket/${year}/en/api/v7/group?groupID=${groupId}&sort=-1&start=0&length=${MADNESS_COUNT}&periodPoints=false`).then(resp => resp.json()).then(data => {
+		if (data.g.e[0].p == 0) {
+			waitingForResults.classList.remove("hidden");
+			return
+		}
 		let bracketData = data.g.e.map((val, i) => `${val.n_d} (${val.p})`)
 		for (let i = 0; i < Math.min(MADNESS_COUNT, bracketData.length); i++) {
 			bracketItem = document.createElement("li");
