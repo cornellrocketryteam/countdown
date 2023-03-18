@@ -1,4 +1,4 @@
-const MADNESS_COUNT = 16;
+const MADNESS_COUNT = 8;
 
 const convertFromGoDuration = d => d / 1000000;
 const convertFromGoDate = d => new Date(d);
@@ -16,7 +16,7 @@ const time = document.querySelector(".clock .time-container .time")
 const temp = document.querySelector(".clock .time-container .weather")
 const unit = document.querySelector(".clock .time-container .weather-unit")
 const date = document.querySelector(".clock .date")
-const countdown = document.querySelector(window.countdownInfo.message.header == "bracket" ? ".title-text" : ".countdown .timer")
+const countdown = document.querySelector(".countdown .timer")
 const countdownDesc = document.querySelector(".countdown .desc")
 
 const madnessContainer = document.querySelector(".madness-container")
@@ -110,7 +110,6 @@ fetch(observationUrl).then(resp => resp.json()).then(data => {
 }).catch(error => console.error("error fetching weather", error))
 
 if (window.countdownInfo.message.header == "bracket") {
-	countdownContainer.classList.add("hidden")
 	infoContainer.classList.add("hidden")
 
 	let bracketInfo = JSON.parse(countdownData.message.body);
