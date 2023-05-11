@@ -97,6 +97,7 @@ body {
 	background-size: cover;
 	justify-content: center;
 	align-items: center;
+	background-color: black;
 }
 
 .info-container .info-text,
@@ -267,4 +268,9 @@ body {
 	100% {
 		opacity: 0;
 	}
+}
+
+#tsparticles {
+	width: 100%;
+	height: 100%;
 }
