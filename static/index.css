@@ -48,11 +48,11 @@ body {
 }
 
 .title .clock .time-container {
-	font-size: 4em;
+	font-size: 3em;
 }
 
 .title .clock .date {
-	font-size: 3em;
+	font-size: 2em;
 }
 
 .countdown-container {
