@@ -1,2 +1,5 @@
 .env
 countdown
+countdown.exe
+node_modules/
+tmp/

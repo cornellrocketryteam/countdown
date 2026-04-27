@@ -1,0 +1,17 @@
+name = "countdown"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Static assets served from the repo root.
+# Files listed in .assetsignore are excluded.
+[assets]
+directory = "./"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "countdown"
+database_id = "75a90755-9c84-452d-b62e-8d9a432aed08"
+
+# CONFIG_PASSWORD is NOT stored here.
+# Set it once with: wrangler secret put CONFIG_PASSWORD

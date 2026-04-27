@@ -1,0 +1,24 @@
+# Go backend (no longer used for deployment)
+*.go
+go.mod
+go.sum
+*.exe
+tmp/
+
+# Worker source
+src/
+package.json
+package-lock.json
+tsconfig.json
+wrangler.toml
+.assetsignore
+
+# Env / dev tooling
+.env
+.env.example
+.air.toml
+
+# Misc
+.git/
+.claude/
+node_modules/
