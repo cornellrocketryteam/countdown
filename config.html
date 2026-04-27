@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <title>Config | CRT Countdown</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ---- Login ---- */
+    #login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-box {
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 0.5rem;
+      padding: 2.5rem 3rem;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .login-box h1 { font-size: 1.6rem; letter-spacing: 0.05em; }
+    .login-box p { font-size: 0.8rem; opacity: 0.45; margin: 0.25rem 0 1.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .login-box input {
+      width: 100%;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 0.375rem;
+      padding: 0.65rem 0.9rem;
+      font-family: inherit;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      letter-spacing: 0.1em;
+    }
+    .login-box input:focus { outline: none; border-color: #fff; }
+    .login-box .btn-primary { width: 100%; }
+    .login-err { color: #f55; font-size: 0.8rem; margin-top: 0.6rem; }
+
+    /* ---- Buttons ---- */
+    button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      border-radius: 0.375rem;
+      padding: 0.55rem 1.2rem;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.75; }
+    .btn-primary  { background: #fff; color: #000; }
+    .btn-danger   { background: #c00; color: #fff; }
+    .btn-save     { background: #1a7a1a; color: #fff; }
+    .btn-edit     { background: #2a2a2a; color: #fff; border: 1px solid #555; }
+    .btn-cancel   { background: transparent; color: #aaa; border: 1px solid #444; }
+    .btn-add      { background: #fff; color: #000; }
+    .btn-ghost    { background: transparent; color: #fff; border: 1px solid #555; font-weight: 400; }
+    .btn-sm       { font-size: 0.78rem; padding: 0.3rem 0.7rem; }
+
+    /* ---- Header ---- */
+    #admin-header {
+      background: #000;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #222;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    #admin-header h1 { font-size: 1.3rem; letter-spacing: 0.04em; }
+    #admin-header span { font-size: 0.75rem; opacity: 0.4; margin-left: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ---- Layout ---- */
+    main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .card {
+      background: #000;
+      border: 1px solid #222;
+      border-radius: 0.5rem;
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.75rem;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ---- Form fields ---- */
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.45;
+      margin-bottom: 0.35rem;
+    }
+    .field input, .field select {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 0.375rem;
+      padding: 0.55rem 0.8rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: #777; }
+    .field select option { background: #111; }
+
+    .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.25rem; }
+    @media (max-width: 560px) { .fields-grid { grid-template-columns: 1fr; } }
+
+    .form-actions { display: flex; gap: 0.6rem; align-items: center; margin-top: 1.25rem; }
+    .saved-msg { font-size: 0.8rem; color: #4c4; opacity: 0; transition: opacity 0.3s; }
+    .saved-msg.show { opacity: 1; }
+
+    /* ---- Event entry ---- */
+    .event-entry + .event-entry { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #1e1e1e; }
+    .event-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .badge-active   { background: #1a4a1a; color: #4c4; border: 1px solid #2a6a2a; }
+    .badge-inactive { background: #2a2a2a; color: #777; border: 1px solid #333; }
+
+    .add-event-form { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #1e1e1e; }
+    .add-event-form .add-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.4; margin-bottom: 1rem; }
+
+    /* ---- Birthdays table ---- */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      opacity: 0.4;
+      text-align: left;
+      padding: 0 0.5rem 0.6rem;
+    }
+    tbody tr { border-top: 1px solid #1a1a1a; }
+    tbody tr:hover { background: #0a0a0a; }
+    td {
+      padding: 0.55rem 0.5rem;
+      font-size: 0.95rem;
+      vertical-align: middle;
+    }
+    td input {
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 0.3rem;
+      padding: 0.3rem 0.5rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    td input:focus { outline: none; border-color: #888; }
+    .td-actions { text-align: right; white-space: nowrap; }
+    .td-actions button + button { margin-left: 0.35rem; }
+
+    .bd-add-row { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #1e1e1e; display: flex; gap: 0.75rem; align-items: flex-end; }
+    .bd-add-row .field { flex: 1; margin-bottom: 0; }
+    .bd-add-row .field-sm { flex: 0 0 8rem; }
+
+    .msg-err { font-size: 0.8rem; color: #f55; margin-top: 0.5rem; }
+    .empty-msg { font-size: 0.9rem; opacity: 0.35; text-align: center; padding: 1.5rem 0; }
+  </style>
+</head>
+<body>
+
+<!-- ======== LOGIN ======== -->
+<div id="login">
+  <div class="login-box">
+    <h1>CRT Countdown</h1>
+    <p>Config Panel</p>
+    <input type="password" id="pw" placeholder="Password"
+           onkeydown="if(event.key==='Enter') login()">
+    <button class="btn-primary" onclick="login()">Enter</button>
+    <p id="login-err" class="login-err hidden">Incorrect password</p>
+  </div>
+</div>
+
+<!-- ======== ADMIN ======== -->
+<div id="admin" class="hidden">
+  <div id="admin-header">
+    <div>
+      <h1>CRT Countdown Config</h1>
+    </div>
+    <button class="btn-ghost btn-sm" onclick="logout()">Logout</button>
+  </div>
+
+  <main>
+    <!-- Events -->
+    <div class="card">
+      <div class="card-title">
+        <span>Countdown Event</span>
+        <button class="btn-ghost btn-sm" onclick="toggleAddEvent()">+ New Event</button>
+      </div>
+      <div id="events-list"><p class="empty-msg">Loading…</p></div>
+    </div>
+
+    <!-- Birthdays -->
+    <div class="card">
+      <div class="card-title"><span>Birthdays</span></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date (MM-DD)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="birthday-body">
+          <tr><td colspan="3" class="empty-msg">Loading…</td></tr>
+        </tbody>
+      </table>
+      <div class="bd-add-row">
+        <div class="field">
+          <label>Name</label>
+          <input type="text" id="new-fname" placeholder="e.g. Alex"
+                 onkeydown="if(event.key==='Enter') addBirthday()">
+        </div>
+        <div class="field field-sm">
+          <label>Date</label>
+          <input type="text" id="new-bday" placeholder="MM-DD" maxlength="5"
+                 oninput="fmtBday(this)" onkeydown="if(event.key==='Enter') addBirthday()">
+        </div>
+        <button class="btn-add" onclick="addBirthday()">Add</button>
+      </div>
+      <p id="bd-err" class="msg-err hidden"></p>
+    </div>
+  </main>
+</div>
+
+<script>
+// ---- helpers ----
+const $ = id => document.getElementById(id);
+const api = async (method, path, body) => {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  let data;
+  try { data = await r.json(); } catch { data = {}; }
+  return { ok: r.ok, status: r.status, data };
+};
+
+// ---- auth ----
+const login = async () => {
+  const { ok } = await api('POST', '/config/login', { password: $('pw').value });
+  if (ok) {
+    $('login').classList.add('hidden');
+    $('admin').classList.remove('hidden');
+    loadAll();
+  } else {
+    $('login-err').classList.remove('hidden');
+  }
+};
+
+const logout = async () => {
+  await api('POST', '/config/logout');
+  $('admin').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  $('pw').value = '';
+};
+
+// ---- events ----
+let events = [];
+let addEventOpen = false;
+
+const toggleAddEvent = () => {
+  addEventOpen = !addEventOpen;
+  renderEvents();
+};
+
+const loadEvents = async () => {
+  const { ok, status, data } = await api('GET', '/api/events');
+  if (status === 401) { showLogin(); return; }
+  events = ok ? (data || []) : [];
+  renderEvents();
+};
+
+const renderEvents = () => {
+  const list = $('events-list');
+  let html = '';
+
+  if (events.length === 0) {
+    html += '<p class="empty-msg">No events in database.</p>';
+  }
+
+  events.forEach(ev => {
+    const isActive = ev.active == 1;
+    const dtLocal = (ev.countdownTo || '').replace('Z', '').slice(0, 16);
+    const refreshMins = Math.round((ev.refreshFreq || 60000) / 60000);
+    html += `
+      <div class="event-entry">
+        <div style="margin-bottom:0.9rem;font-size:0.9rem">
+          <strong>${ev.event || '(unnamed)'}</strong>
+          <span class="event-badge ${isActive ? 'badge-active' : 'badge-inactive'}">
+            ${isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+        <div class="fields-grid">
+          <div class="field">
+            <label>Event Name</label>
+            <input type="text" id="ev-name-${ev.id}" value="${esc(ev.event || '')}">
+          </div>
+          <div class="field">
+            <label>Countdown To (local time)</label>
+            <input type="datetime-local" id="ev-time-${ev.id}" value="${dtLocal}">
+          </div>
+          <div class="field">
+            <label>Page Refresh (minutes)</label>
+            <input type="number" id="ev-refresh-${ev.id}" value="${refreshMins}" min="1" max="1440">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="ev-active-${ev.id}">
+              <option value="1" ${isActive ? 'selected' : ''}>Active</option>
+              <option value="0" ${!isActive ? 'selected' : ''}>Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-save btn-sm" onclick="saveEvent(${ev.id})">Save Changes</button>
+          <button class="btn-danger btn-sm" onclick="deleteEvent(${ev.id})">Delete</button>
+          <span id="ev-msg-${ev.id}" class="saved-msg">Saved!</span>
+        </div>
+      </div>`;
+  });
+
+  if (addEventOpen) {
+    html += `
+      <div class="add-event-form">
+        <p class="add-title">New Event</p>
+        <div class="fields-grid">
+          <div class="field">
+            <label>Event Name</label>
+            <input type="text" id="new-ev-name" placeholder="e.g. Launch Day">
+          </div>
+          <div class="field">
+            <label>Countdown To</label>
+            <input type="datetime-local" id="new-ev-time">
+          </div>
+          <div class="field">
+            <label>Page Refresh (minutes)</label>
+            <input type="number" id="new-ev-refresh" value="1" min="1" max="1440">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="new-ev-active">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-add btn-sm" onclick="addEvent()">Create Event</button>
+          <button class="btn-cancel btn-sm" onclick="toggleAddEvent()">Cancel</button>
+          <span id="new-ev-msg" class="saved-msg">Created!</span>
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML = html;
+};
+
+const saveEvent = async id => {
+  const name     = $(`ev-name-${id}`).value.trim();
+  const dtVal    = $(`ev-time-${id}`).value;
+  const mins     = parseInt($(`ev-refresh-${id}`).value) || 1;
+  const active   = parseInt($(`ev-active-${id}`).value);
+  const countdownTo = dtVal ? dtVal + ':00Z' : '';
+
+  const { ok } = await api('PUT', `/api/events/${id}`, {
+    event: name, countdownTo, refreshFreq: mins * 60000, active,
+  });
+  if (ok) {
+    const el = $(`ev-msg-${id}`);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+    await loadEvents();
+  }
+};
+
+const deleteEvent = async id => {
+  const ev = events.find(e => e.id == id);
+  if (!confirm(`Delete event "${ev?.event || id}"?`)) return;
+  const { ok } = await api('DELETE', `/api/events/${id}`);
+  if (ok) loadEvents();
+};
+
+const addEvent = async () => {
+  const name    = $('new-ev-name').value.trim();
+  const dtVal   = $('new-ev-time').value;
+  const mins    = parseInt($('new-ev-refresh').value) || 1;
+  const active  = parseInt($('new-ev-active').value);
+  if (!name) { $('new-ev-name').focus(); return; }
+  const countdownTo = dtVal ? dtVal + ':00Z' : '';
+
+  const { ok } = await api('POST', '/api/events', {
+    event: name, countdownTo, refreshFreq: mins * 60000, active,
+  });
+  if (ok) {
+    addEventOpen = false;
+    loadEvents();
+  }
+};
+
+// ---- birthdays ----
+let birthdays = [];
+
+const loadBirthdays = async () => {
+  const { ok, status, data } = await api('GET', '/api/birthdays');
+  if (status === 401) { showLogin(); return; }
+  birthdays = ok ? (data || []) : [];
+  renderBirthdays();
+};
+
+const renderBirthdays = () => {
+  const tbody = $('birthday-body');
+  if (!birthdays.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">No birthdays saved.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = birthdays.map(b => `
+    <tr id="row-${b.id}">
+      <td id="fname-cell-${b.id}">${esc(b.fname)}</td>
+      <td id="bday-cell-${b.id}">${esc(b.birthday)}</td>
+      <td class="td-actions">
+        <button class="btn-edit btn-sm" onclick="editBirthday(${b.id})">Edit</button>
+        <button class="btn-danger btn-sm" onclick="deleteBirthday(${b.id})">Delete</button>
+      </td>
+    </tr>`).join('');
+};
+
+const editBirthday = id => {
+  const b = birthdays.find(x => x.id == id);
+  if (!b) return;
+  $(`fname-cell-${id}`).innerHTML = `<input type="text" id="ef-${id}" value="${esc(b.fname)}">`;
+  $(`bday-cell-${id}`).innerHTML  = `<input type="text" id="eb-${id}" value="${esc(b.birthday)}" maxlength="5" style="width:6em">`;
+  document.querySelector(`#row-${id} .td-actions`).innerHTML = `
+    <button class="btn-save btn-sm" onclick="saveBirthday(${id})">Save</button>
+    <button class="btn-cancel btn-sm" onclick="renderBirthdays()">Cancel</button>`;
+  $(`ef-${id}`).focus();
+};
+
+const saveBirthday = async id => {
+  const fname    = $(`ef-${id}`).value.trim();
+  const birthday = $(`eb-${id}`).value.trim();
+  if (!fname || !birthday) return;
+  const { ok } = await api('PUT', `/api/birthdays/${id}`, { fname, birthday });
+  if (ok) {
+    const idx = birthdays.findIndex(b => b.id == id);
+    if (idx !== -1) birthdays[idx] = { ...birthdays[idx], fname, birthday };
+    renderBirthdays();
+  }
+};
+
+const deleteBirthday = async id => {
+  const b = birthdays.find(x => x.id == id);
+  if (!confirm(`Delete birthday for ${b?.fname}?`)) return;
+  const { ok } = await api('DELETE', `/api/birthdays/${id}`);
+  if (ok) {
+    birthdays = birthdays.filter(b => b.id != id);
+    renderBirthdays();
+  }
+};
+
+const addBirthday = async () => {
+  const fname    = $('new-fname').value.trim();
+  const birthday = $('new-bday').value.trim();
+  const errEl    = $('bd-err');
+  if (!fname || !birthday) {
+    showErr(errEl, 'Name and date are required.');
+    return;
+  }
+  if (!/^\d{2}-\d{2}$/.test(birthday)) {
+    showErr(errEl, 'Date must be MM-DD (e.g. 04-26).');
+    return;
+  }
+  const { ok, data } = await api('POST', '/api/birthdays', { fname, birthday });
+  if (ok) {
+    errEl.classList.add('hidden');
+    $('new-fname').value = '';
+    $('new-bday').value  = '';
+    await loadBirthdays();
+  } else {
+    showErr(errEl, data.error || 'Failed to add birthday.');
+  }
+};
+
+// ---- utils ----
+const fmtBday = el => {
+  const digits = el.value.replace(/\D/g, '').slice(0, 4);
+  el.value = digits.length > 2 ? digits.slice(0, 2) + '-' + digits.slice(2) : digits;
+};
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const showErr = (el, msg) => { el.textContent = msg; el.classList.remove('hidden'); };
+
+const showLogin = () => {
+  $('admin').classList.add('hidden');
+  $('login').classList.remove('hidden');
+};
+
+const loadAll = () => { loadEvents(); loadBirthdays(); };
+
+// Check auth on load
+(async () => {
+  const { status } = await api('GET', '/api/birthdays');
+  if (status === 401) {
+    showLogin();
+  } else {
+    $('login').classList.add('hidden');
+    $('admin').classList.remove('hidden');
+    loadAll();
+  }
+})();
+</script>
+</body>
+</html>

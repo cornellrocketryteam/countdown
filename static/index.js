@@ -104,6 +104,62 @@ if (countdownData.showMessage && window.countdownInfo.message.header != "bracket
 setInterval(tick, 500)
 setTimeout(() => window.location.reload(), countdownData.refreshFreq)
 
+const BUS_STOP_ID = 1533;
+const busListEl = document.querySelector('.bus-list');
+
+const fetchBuses = () => {
+	fetch(`https://realtimetcatbus.availtec.com/InfoPoint/rest/StopDepartures/Get/${BUS_STOP_ID}`)
+		.then(r => r.json())
+		.then(data => {
+			const now = new Date();
+			const departures = [];
+
+			for (const stop of data) {
+				for (const rd of stop.RouteDirections) {
+					if (!rd.Departures) continue;
+					for (const dep of rd.Departures) {
+						if (dep.IsCompleted) continue;
+						const eta = new Date(dep.ETALocalTime);
+						const minsAway = Math.round((eta - now) / 60000);
+						if (minsAway >= 0) {
+							departures.push({
+								route: rd.RouteId,
+								eta,
+								minsAway,
+							});
+						}
+					}
+				}
+			}
+
+			departures.sort((a, b) => a.minsAway - b.minsAway);
+			const next = departures.slice(0, 3);
+
+			busListEl.innerHTML = '';
+			if (next.length === 0) {
+				busListEl.innerHTML = '<div class="bus-item" style="opacity:0.5">No buses scheduled</div>';
+				return;
+			}
+			for (const bus of next) {
+				const minsStr = bus.minsAway < 1 ? 'now' : `${bus.minsAway} min`;
+				const clockStr = bus.eta.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+				const item = document.createElement('div');
+				item.className = 'bus-item';
+				item.innerHTML =
+					`<span class="bus-route">${bus.route}</span>` +
+					`<span class="bus-time">${minsStr}</span>` +
+					`<span class="bus-eta">${clockStr}</span>`;
+				busListEl.appendChild(item);
+			}
+		})
+		.catch(() => {
+			busListEl.innerHTML = '<div class="bus-item" style="opacity:0.5">Unavailable</div>';
+		});
+};
+
+fetchBuses();
+setInterval(fetchBuses, 60000);
+
 fetch(observationUrl).then(resp => resp.json()).then(data => {
 	const tempData = getTemp(data)
 	temp.textContent = tempData.temp
