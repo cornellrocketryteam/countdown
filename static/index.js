@@ -24,6 +24,22 @@ const madnessList1 = document.querySelector(".madness-list-1")
 const madnessList2 = document.querySelector(".madness-list-2")
 const waitingForResults = document.querySelector(".waiting-for-results")
 
+const streamContainer = document.querySelector(".stream-container")
+const streamFrame = document.querySelector(".stream-frame")
+
+const youtubeEmbed = url => {
+	if (!url) return ""
+	let id = ""
+	const watchMatch = url.match(/[?&]v=([^&]+)/)
+	if (watchMatch) id = watchMatch[1]
+	const shortMatch = url.match(/youtu\.be\/([^?&/]+)/)
+	if (!id && shortMatch) id = shortMatch[1]
+	const liveMatch = url.match(/youtube\.com\/live\/([^?&/]+)/)
+	if (!id && liveMatch) id = liveMatch[1]
+	if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1`
+	return url
+}
+
 const destTime = convertFromGoDate(countdownData.countdownTo)
 
 const observationUrl = "https://api.weather.gov/stations/KITH/observations/latest"
@@ -80,7 +96,14 @@ const tick = () => {
 	}
 }
 
-if (countdownData.showMessage && window.countdownInfo.message.header != "bracket") {
+if (countdownData.showStream) {
+	streamFrame.setAttribute("src", youtubeEmbed(countdownData.streamUrl))
+	countdownContainer.classList.add("hidden")
+	infoContainer.classList.add("hidden")
+	streamContainer.classList.remove("hidden")
+}
+
+if (!countdownData.showStream && countdownData.showMessage && window.countdownInfo.message.header != "bracket") {
 	infoTitle.textContent = countdownData.message.header
 	if (countdownData.message.body && countdownData.message.body != "__confetti__") {
 		infoSubtitle.textContent = countdownData.message.body

@@ -9,6 +9,7 @@ export interface Env {
 interface EventRow    { id: number; countdownTo: string; refreshFreq: number; event: string; active: number; }
 interface MessageRow  { header: string; body: string; img: string; qrCode: string; }
 interface BirthdayRow { id: number; fname: string; birthday: string; }
+interface StreamRow   { id: number; url: string; title: string | null; active: number; }
 
 // ---- Helpers -------------------------------------------------------------
 
@@ -65,7 +66,20 @@ async function handleIndex(request: Request, env: Env): Promise<Response> {
   let backgroundImage  = '';
   let showQrCode       = false;
   let qrCodeImage      = '';
+  let showStream       = false;
+  let streamUrl        = '';
+  let streamTitle      = '';
 
+  // Streams take priority over messages and birthdays
+  const stream = await env.DB.prepare(
+    'SELECT url, title FROM streams WHERE active = 1'
+  ).first<StreamRow>();
+
+  if (stream) {
+    showStream  = true;
+    streamUrl   = stream.url;
+    streamTitle = stream.title ?? '';
+  } else {
   const msg = await env.DB.prepare(
     'SELECT header, body, img, qrCode FROM messages WHERE active = 1'
   ).first<MessageRow>();
@@ -95,6 +109,7 @@ async function handleIndex(request: Request, env: Env): Promise<Response> {
       backgroundImage = 'static/birthday.jpg';
     }
   }
+  }
 
   const data = {
     generatedAt:  new Date().toISOString(),
@@ -104,6 +119,9 @@ async function handleIndex(request: Request, env: Env): Promise<Response> {
     showMessage,
     specialMessage: '',
     message: { header, body, backgroundImage, showQrCode, qrCodeImage },
+    showStream,
+    streamUrl,
+    streamTitle,
   };
 
   const asset = await env.ASSETS.fetch(`${origin}/index.html`);
@@ -190,6 +208,38 @@ async function deleteEvent(env: Env, id: string): Promise<Response> {
   return jsonOK({ ok: true });
 }
 
+// ---- Stream API ----------------------------------------------------------
+
+async function listStreams(env: Env): Promise<Response> {
+  const { results } = await env.DB.prepare(
+    'SELECT id, url, title, active FROM streams ORDER BY id'
+  ).all<StreamRow>();
+  return jsonOK(results ?? []);
+}
+
+async function addStream(request: Request, env: Env): Promise<Response> {
+  const body = await request.json() as { url?: string; title?: string; active?: number };
+  if (!body?.url) return jsonErr(400, 'url required');
+  await env.DB.prepare(
+    'INSERT INTO streams (url, title, active) VALUES (?, ?, ?)'
+  ).bind(body.url, body.title ?? '', body.active ?? 0).run();
+  return jsonOK({ ok: true });
+}
+
+async function updateStream(request: Request, env: Env, id: string): Promise<Response> {
+  const body = await request.json() as { url?: string; title?: string; active?: number };
+  if (!body?.url) return jsonErr(400, 'url required');
+  await env.DB.prepare(
+    'UPDATE streams SET url = ?, title = ?, active = ? WHERE id = ?'
+  ).bind(body.url, body.title ?? '', body.active ?? 0, id).run();
+  return jsonOK({ ok: true });
+}
+
+async function deleteStream(env: Env, id: string): Promise<Response> {
+  await env.DB.prepare('DELETE FROM streams WHERE id = ?').bind(id).run();
+  return jsonOK({ ok: true });
+}
+
 // ---- Router --------------------------------------------------------------
 
 export default {
@@ -218,6 +268,11 @@ export default {
       if (path === '/api/events'           && method === 'POST')   return addEvent(request, env);
       if (path.startsWith('/api/events/')  && method === 'PUT'   && id) return updateEvent(request, env, id);
       if (path.startsWith('/api/events/')  && method === 'DELETE' && id) return deleteEvent(env, id);
+
+      if (path === '/api/streams'          && method === 'GET')    return listStreams(env);
+      if (path === '/api/streams'          && method === 'POST')   return addStream(request, env);
+      if (path.startsWith('/api/streams/') && method === 'PUT'   && id) return updateStream(request, env, id);
+      if (path.startsWith('/api/streams/') && method === 'DELETE' && id) return deleteStream(env, id);
 
       return jsonErr(404, 'not found');
     }

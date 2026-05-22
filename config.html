@@ -234,6 +234,12 @@
       <div id="events-list"><p class="empty-msg">Loading…</p></div>
     </div>
 
+    <!-- Live Stream -->
+    <div class="card">
+      <div class="card-title"><span>Live Stream</span></div>
+      <div id="stream-container">Loading…</div>
+    </div>
+
     <!-- Birthdays -->
     <div class="card">
       <div class="card-title"><span>Birthdays</span></div>
@@ -441,6 +447,105 @@ const addEvent = async () => {
   }
 };
 
+// ---- streams ----
+let streams = [];
+
+const loadStreams = async () => {
+  const { ok, status, data } = await api('GET', '/api/streams');
+  if (status === 401) { showLogin(); return; }
+  streams = ok ? (data || []) : [];
+  renderStream();
+};
+
+const renderStream = () => {
+  const c = $('stream-container');
+  const s = streams[0]; // single-stream UX
+  if (!s) {
+    c.innerHTML = `
+      <div class="fields-grid">
+        <div class="field">
+          <label>Stream Title (optional)</label>
+          <input type="text" id="new-stream-title" placeholder="e.g. Starship Flight Test">
+        </div>
+        <div class="field">
+          <label>YouTube URL</label>
+          <input type="text" id="new-stream-url" placeholder="https://www.youtube.com/watch?v=...">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="new-stream-active">
+            <option value="1">Active</option>
+            <option value="0" selected>Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-add btn-sm" onclick="createStream()">Save Stream</button>
+        <span id="new-stream-msg" class="saved-msg">Saved!</span>
+      </div>`;
+    return;
+  }
+  const isActive = s.active == 1;
+  c.innerHTML = `
+    <div style="margin-bottom:0.9rem;font-size:0.9rem">
+      <strong>${esc(s.title || '(untitled)')}</strong>
+      <span class="event-badge ${isActive ? 'badge-active' : 'badge-inactive'}">
+        ${isActive ? 'Live' : 'Off'}
+      </span>
+    </div>
+    <div class="fields-grid">
+      <div class="field">
+        <label>Stream Title (optional)</label>
+        <input type="text" id="s-title-${s.id}" value="${esc(s.title || '')}">
+      </div>
+      <div class="field">
+        <label>YouTube URL</label>
+        <input type="text" id="s-url-${s.id}" value="${esc(s.url || '')}">
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="s-active-${s.id}">
+          <option value="1" ${isActive ? 'selected' : ''}>Active</option>
+          <option value="0" ${!isActive ? 'selected' : ''}>Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-save btn-sm" onclick="saveStream(${s.id})">Save Changes</button>
+      <button class="btn-danger btn-sm" onclick="deleteStream(${s.id})">Delete</button>
+      <span id="s-msg-${s.id}" class="saved-msg">Saved!</span>
+    </div>`;
+};
+
+const createStream = async () => {
+  const title  = $('new-stream-title').value.trim();
+  const url    = $('new-stream-url').value.trim();
+  const active = parseInt($('new-stream-active').value);
+  if (!url) { $('new-stream-url').focus(); return; }
+  const { ok } = await api('POST', '/api/streams', { url, title, active });
+  if (ok) loadStreams();
+};
+
+const saveStream = async id => {
+  const title  = $(`s-title-${id}`).value.trim();
+  const url    = $(`s-url-${id}`).value.trim();
+  const active = parseInt($(`s-active-${id}`).value);
+  if (!url) { $(`s-url-${id}`).focus(); return; }
+  const { ok } = await api('PUT', `/api/streams/${id}`, { url, title, active });
+  if (ok) {
+    const el = $(`s-msg-${id}`);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+    await loadStreams();
+  }
+};
+
+const deleteStream = async id => {
+  if (!confirm('Delete this stream?')) return;
+  const { ok } = await api('DELETE', `/api/streams/${id}`);
+  if (ok) loadStreams();
+};
+
 // ---- birthdays ----
 let birthdays = [];
 
@@ -537,7 +642,7 @@ const showLogin = () => {
   $('login').classList.remove('hidden');
 };
 
-const loadAll = () => { loadEvents(); loadBirthdays(); };
+const loadAll = () => { loadEvents(); loadStreams(); loadBirthdays(); };
 
 // Check auth on load
 (async () => {
